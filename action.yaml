@@ -1,21 +1,54 @@
-name: 'Hello World' # taken from https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
-description: 'Greet someone'
+name: Generate and upload npm protos
+description: Generates npm protos and uploads them to google artifact registry
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  credentials-json:
+    description: Google credentials json
     required: true
-    default: 'World'
-outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-id }}
+  project-id:
+    description: Google cloud project id
+    required: true
+  package-name:
+    description: NPM package name
+    required: true
+  version:
+    description: Version to publish
+    required: false
+    default: ${{ github.event.release.tag_name }}
+  scope:
+    description: Artifact registry scope
+    required: false
+    default: '@unsupervised'
+  repository:
+    description: Artifact registry repository name
+    required: false
+    default: npm
+  location:
+    description: Artifact registry location
+    required: false
+    default: us-central1
+  proto-directory:
+    description: Location of generated protos
+    required: false
+    default: build/nodejs
 runs:
-  using: "composite"
+  using: composite
   steps:
-    - run: echo Hello ${{ inputs.who-to-greet }}.
+    - id: auth
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: ${{ inputs.credentials-json }}
+    - uses: google-github-actions/setup-gcloud@v0.3.0
+      with:
+        project_id: ${{ inputs.project-id }}
+    - name: Publish artifacts using ephemeral npm project
       shell: bash
-    - id: random-number-generator
-      run: echo "::set-output name=random-id::$(echo $RANDOM)"
-      shell: bash
-    - run: ${{ github.action_path }}/goodbye.sh
-      shell: bash
+      run: |
+        mkdir ephemeralnpm
+        cd ephemeralnpm
+        npm init -y
+        json="$(jq --arg version "${{ inputs.version }}" '.name = "${{ inputs.scope }}/${{ inputs.package-name }}" | .version = $version' package.json)"
+        echo "${json}" > package.json
+        echo "$(gcloud artifacts print-settings npm --scope=${{ inputs.scope }} --repository ${{ inputs.repository }} --location ${{ inputs.location }})" | sed 1,2d > .npmrc
+        cp -r ../${{ inputs.proto-directory }}/* .
+        npx google-artifactregistry-auth -y
+        npm publish
