@@ -37,23 +37,23 @@ Greet someone
 <!-- end outputs -->
    <!-- start examples -->
 
-### Example usage
+### Example usage with npm upload protos action, will result in an uploaded package called `@unsupervised/my-app`
 
 ```yaml
-on: [push]
-
+name: Build and upload npm protos to gar
+on:
+  release:
+    types: [created]
 jobs:
-  hello_world_job:
+  build-upload-protos-npm:
     runs-on: ubuntu-latest
-    name: A job to say hello
     steps:
-      - uses: actions/checkout@v2
-      - id: foo
-        uses: actions/hello-world-composite-action@v1
+      - uses: Unsupervisedcom/action-buf-generate@v1
+      - uses: Unsupervisedcom/action-upload-protos-npm-gar@v1
         with:
-          who-to-greet: "Mona the Octocat"
-      - run: echo random-number ${{ steps.foo.outputs.random-number }}
-        shell: bash
+          project-id: ${{ secrets.GOOGLE_ARTIFACT_PROJECT_ID }}
+          credentials-json: ${{ secrets.GOOGLE_ARTIFACT_READ_WRITE }}
+          package-name: 'my-app'
 ```
 
 <!-- end examples -->
