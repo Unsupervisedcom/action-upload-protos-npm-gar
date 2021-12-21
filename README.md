@@ -1,11 +1,11 @@
 <!-- start title -->
 
-# GitHub Action:Hello World
+# GitHub Action:Generate and upload npm protos
 
 <!-- end title -->
 <!-- start description -->
 
-Greet someone
+Generates npm protos and uploads them to google artifact registry
 
 <!-- end description -->
 <!-- start contents -->
@@ -13,19 +13,51 @@ Greet someone
 <!-- start usage -->
 
 ```yaml
-- uses: Unsupervisedcom/action-composite-action-template@undefined
+- uses: Unsupervisedcom/action-upload-protos-npm-gar@undefined
   with:
-    # Who to greet
-    # Default: World
-    who-to-greet: ""
+    # Google credentials json
+    credentials-json: ""
+
+    # Google cloud project id
+    project-id: ""
+
+    # NPM package name
+    package-name: ""
+
+    # Version to publish
+    # Default: ${{ github.event.release.tag_name }}
+    version: ""
+
+    # Artifact registry scope
+    # Default: @unsupervised
+    scope: ""
+
+    # Artifact registry repository name
+    # Default: npm
+    repository: ""
+
+    # Artifact registry location
+    # Default: us-central1
+    location: ""
+
+    # Location of generated protos
+    # Default: build/nodejs
+    proto-directory: ""
 ```
 
 <!-- end usage -->
    <!-- start inputs -->
 
-| **Input**          | **Description** | **Default** | **Required** |
-| :----------------- | :-------------- | :---------: | :----------: |
-| **`who-to-greet`** | Who to greet    |   `World`   |   **true**   |
+| **Input**              | **Description**                   |              **Default**               | **Required** |
+| :--------------------- | :-------------------------------- | :------------------------------------: | :----------: |
+| **`credentials-json`** | Google credentials json           |                                        |   **true**   |
+| **`project-id`**       | Google cloud project id           |                                        |   **true**   |
+| **`package-name`**     | NPM package name                  |                                        |   **true**   |
+| **`version`**          | Version to publish                | `${{ github.event.release.tag_name }}` |  **false**   |
+| **`scope`**            | Artifact registry scope           |            `@unsupervised`             |  **false**   |
+| **`repository`**       | Artifact registry repository name |                 `npm`                  |  **false**   |
+| **`location`**         | Artifact registry location        |             `us-central1`              |  **false**   |
+| **`proto-directory`**  | Location of generated protos      |             `build/nodejs`             |  **false**   |
 
 <!-- end inputs -->
    <!-- start outputs -->
@@ -53,7 +85,7 @@ jobs:
         with:
           project-id: ${{ secrets.GOOGLE_ARTIFACT_PROJECT_ID }}
           credentials-json: ${{ secrets.GOOGLE_ARTIFACT_READ_WRITE }}
-          package-name: 'my-app'
+          package-name: "my-app"
 ```
 
 <!-- end examples -->
